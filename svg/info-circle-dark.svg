@@ -1,0 +1,10 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Icon / info-circle">
+<path id="Vector" d="M12.8333 8.00033C12.8333 10.6697 10.6694 12.8337 8 12.8337C5.33063 12.8337 3.16667 10.6697 3.16667 8.00033C3.16667 5.33095 5.33063 3.16699 8 3.16699C10.6694 3.16699 12.8333 5.33095 12.8333 8.00033Z" fill="#646566" stroke="#646566" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<g id="Vector_2">
+<path d="M8 10.667V7.66699V10.667Z" fill="white"/>
+<path d="M8 10.667V7.66699" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<path id="Vector_3" d="M7.99999 6.66634C8.36818 6.66634 8.66666 6.36786 8.66666 5.99967C8.66666 5.63148 8.36818 5.33301 7.99999 5.33301C7.63181 5.33301 7.33333 5.63148 7.33333 5.99967C7.33333 6.36786 7.63181 6.66634 7.99999 6.66634Z" fill="white"/>
+</g>
+</svg>

@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EverBee Settings</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        width: 340px;
+        font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+        background: #f3f8ff;
+        color: #0b1220;
+      }
+      .header {
+        background: #fff;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border-bottom: 1px solid #d6e6f8;
+      }
+      .header img {
+        width: 26px;
+        height: 26px;
+      }
+      .header-title {
+        color: #043872;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+      }
+
+      .body {
+        padding: 18px 20px;
+      }
+      .section {
+        background: #fff;
+        border: 1px solid #d2e4f8;
+        border-radius: 12px;
+        padding: 14px 14px 12px;
+        box-shadow: 0 4px 14px rgba(4, 56, 114, 0.08);
+      }
+      .section-title {
+        font-size: 10.5px;
+        font-weight: 800;
+        color: #6f92ba;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+      }
+
+      .field-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: #1d3557;
+        display: block;
+      }
+
+      .status {
+        font-size: 12px;
+        text-align: center;
+        margin-top: 8px;
+        min-height: 18px;
+        font-weight: 600;
+      }
+      .status.ok {
+        color: #42ba96;
+      }
+      .status.err {
+        color: #e53935;
+      }
+
+      .hint {
+        font-size: 11px;
+        color: #6f87a8;
+        line-height: 1.55;
+        margin-top: 6px;
+      }
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .switch {
+        position: relative;
+        width: 44px;
+        height: 24px;
+        display: inline-block;
+      }
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        inset: 0;
+        cursor: pointer;
+        background: #cddff2;
+        border-radius: 999px;
+        transition: background 0.18s ease;
+      }
+      .slider::before {
+        content: '';
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        left: 3px;
+        top: 3px;
+        background: #fff;
+        border-radius: 50%;
+        transition: transform 0.18s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      }
+      .switch input:checked + .slider {
+        background: #1f76cc;
+      }
+      .switch input:checked + .slider::before {
+        transform: translateX(20px);
+      }
+      .switch input:disabled + .slider {
+        opacity: 0.5;
+        cursor: default;
+      }
+
+      /* AI Actions visibility (RESEARCH-3172) — from the design handoff */
+      .visibility-row {
+        padding-bottom: 12px;
+        border-bottom: 1px solid #e6eef7;
+      }
+      .pause-status {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 12px;
+        padding: 10px;
+        background: #eef6ff;
+        border: 1px solid #d3e7fb;
+        border-radius: 9px;
+        color: #315d8b;
+        font-size: 11.5px;
+        line-height: 1.35;
+      }
+      .pause-status[hidden] {
+        display: none;
+      }
+      .text-button {
+        padding: 0;
+        border: 0;
+        background: none;
+        color: #1269bb;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 750;
+        white-space: nowrap;
+      }
+      .text-button:hover {
+        text-decoration: underline;
+      }
+      .text-button:disabled {
+        color: #9fb6cf;
+        cursor: default;
+        text-decoration: none;
+      }
+      .hidden-toggle {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: 10px;
+        padding: 8px 2px;
+        border: 0;
+        background: none;
+        color: #415a77;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1;
+      }
+      /* An SVG caret rather than a text glyph: a glyph sits on its baseline, so
+         it never lines up with the label's optical centre and rotating it looks
+         like a swing. */
+      .hidden-toggle-caret {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        color: #6f92ba;
+        transform-origin: 50% 50%;
+        transition: transform 260ms cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .hidden-toggle-caret svg {
+        display: block;
+        width: 14px;
+        height: 14px;
+      }
+      .hidden-toggle[aria-expanded='true'] .hidden-toggle-caret {
+        transform: rotate(180deg);
+      }
+      .hidden-toggle:hover .hidden-toggle-caret {
+        color: #415a77;
+      }
+      /* Collapsed via max-height (not [hidden]) so it can animate. */
+      .hidden-list {
+        list-style: none;
+        margin-top: 0;
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        transition:
+          max-height 260ms cubic-bezier(0.4, 0, 0.2, 1),
+          opacity 180ms ease,
+          margin-top 260ms cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .hidden-list.is-open {
+        max-height: 260px;
+        overflow-y: auto;
+        opacity: 1;
+        margin-top: 6px;
+      }
+      .hidden-site {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 7px 2px;
+        border-top: 1px solid #edf2f7;
+        color: #60758f;
+        font-size: 11.5px;
+      }
+      .hidden-site span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .empty-sites {
+        padding: 7px 2px 2px;
+        color: #8294aa;
+        font-size: 11px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <img src="../svg/everbee-logo-sm.svg" alt="EverBee logo" />
+      <div>
+        <div class="header-title">EverBee Settings</div>
+      </div>
+    </header>
+
+    <main class="body">
+      <section class="section">
+        <div class="section-title">AI Actions visibility</div>
+        <div class="field visibility-row">
+          <div class="toggle-row">
+            <label
+              class="field-label"
+              for="nonEtsyEnabledInput"
+              style="margin: 0"
+            >
+              Show on non-Etsy sites
+            </label>
+            <label class="switch" aria-label="Show AI Actions on non-Etsy sites">
+              <!-- Checked in the markup: visibility is on by default, so the
+                   switch never flashes OFF while the stored state loads. -->
+              <input type="checkbox" id="nonEtsyEnabledInput" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="hint">Controls the image hover icon outside Etsy.</div>
+          <div class="pause-status" id="pauseStatus" hidden>
+            <span id="pauseStatusText"></span>
+            <button class="text-button" id="resumeButton" type="button">
+              Resume now
+            </button>
+          </div>
+        </div>
+        <button
+          class="hidden-toggle"
+          id="hiddenSitesToggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="hiddenSitesList"
+        >
+          <span id="hiddenSitesLabel">Hidden sites (0)</span>
+          <span class="hidden-toggle-caret" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </span>
+        </button>
+        <ul class="hidden-list" id="hiddenSitesList" aria-hidden="true"></ul>
+        <div class="hint" id="visAuthHint" hidden>
+          Sign in to EverBee to manage AI Actions visibility.
+        </div>
+      </section>
+      <div class="status" id="statusEl"></div>
+    </main>
+
+    <script src="promptsApi.js"></script>
+    <script src="planMapping.js"></script>
+    <script src="analytics.js"></script>
+    <script src="settings.js"></script>
+  </body>
+</html>

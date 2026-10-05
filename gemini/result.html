@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Gemini Design Generator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #080808;
+      --surface: #111111;
+      --surface2: #181818;
+      --border: #1f1f1f;
+      --border2: #2a2a2a;
+      --text: #ffffff;
+      --muted: #5a5a5a;
+      --blue: #2563eb;
+      --blue-h: #1d4ed8;
+    }
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(8, 8, 8, 0.85);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 60px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .topbar-title { font-size: 15px; font-weight: 600; }
+    .topbar-sub { font-size: 12px; color: var(--muted); }
+    .topbar-count {
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--muted);
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      padding: 4px 12px;
+    }
+    .empty {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: calc(100vh - 60px);
+      gap: 16px;
+      color: var(--muted);
+    }
+    #queue {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 28px 28px 60px;
+      display: flex; flex-direction: column; gap: 20px;
+    }
+    .job {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .job-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .job-num {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--surface2); border: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: var(--muted);
+      flex-shrink: 0;
+    }
+    .job-title { font-size: 13px; font-weight: 500; }
+    .job-badge {
+      margin-left: auto;
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 500;
+      padding: 4px 10px; border-radius: 20px;
+    }
+    .job-badge.generating { background: rgba(37, 99, 235, 0.12); color: #60a5fa; }
+    .job-badge.done { background: rgba(22, 163, 74, 0.12); color: #4ade80; }
+    .job-badge.error { background: rgba(220, 38, 38, 0.12); color: #f87171; }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .job-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .job-col {
+      border-right: 1px solid var(--border);
+    }
+    .job-col:last-child { border-right: none; }
+    .col-label {
+      font-size: 10px; font-weight: 500;
+      color: var(--muted); letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 10px 16px 6px;
+    }
+    .job-img {
+      width: 100%;
+      display: block;
+      object-fit: contain;
+    }
+    .gen-area {
+      min-height: 200px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .spinner-wrap {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 14px; padding: 40px;
+    }
+    .ring {
+      width: 36px; height: 36px;
+      border: 2.5px solid var(--border2);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin-msg { font-size: 12px; color: var(--muted); }
+    .error-msg { padding: 24px; font-size: 12px; color: #f87171; line-height: 1.6; }
+    .job-footer {
+      padding: 12px 20px;
+      border-top: 1px solid var(--border);
+      display: flex; gap: 8px; align-items: center;
+    }
+    button {
+      font-family: inherit;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 16px; border-radius: 10px;
+      border: none; font-size: 12px; font-weight: 500;
+      cursor: pointer;
+    }
+    .btn-dl { background: var(--blue); color: #fff; }
+    .btn-dl:hover { background: var(--blue-h); }
+    .btn-retry { background: var(--surface2); color: var(--muted); border: 1px solid var(--border2); }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <span>✨</span>
+    <span class="topbar-title">Gemini Design Generator</span>
+    <span class="topbar-sub" id="headerSub">Waiting for images...</span>
+    <span class="topbar-count" id="countBadge" style="display:none"></span>
+  </div>
+
+  <div class="empty" id="emptyState">
+    <div style="font-size:48px;opacity:0.4">✨</div>
+    <h2>No designs yet</h2>
+    <p>Hover any image and click ✨ to start generating</p>
+  </div>
+
+  <div id="queue"></div>
+  <script src="result.js"></script>
+</body>
+</html>

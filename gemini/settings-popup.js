@@ -1,0 +1,1 @@
+document.getElementById("manageBtn")?.addEventListener("click",(function(){chrome.tabs.create({url:chrome.runtime.getURL("gemini/prompts.html")})}));

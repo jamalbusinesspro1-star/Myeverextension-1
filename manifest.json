@@ -1,0 +1,63 @@
+{
+   "action": {
+      "default_icon": "images/logo2.png",
+      "default_popup": "gemini/settings.html"
+   },
+   "background": {
+      "service_worker": "backgroundScripts/background.js"
+   },
+   "content_scripts": [ {
+      "css": [ "main.css" ],
+      "exclude_matches": [ "https://www.etsy.com/your/*", "https://www.etsy.com/*/your/*", "https://www.etsy.com/messages*", "https://www.etsy.com/developers/*", "https://www.etsy.com/oauth/*", "https://www.etsy.com/shop/*/edit*", "https://www.etsy.com/oauth2/*" ],
+      "js": [ "production.js" ],
+      "matches": [ "*://www.etsy.com/*" ],
+      "media": [  ],
+      "run_at": "document_idle"
+   }, {
+      "all_frames": true,
+      "js": [ "gemini/promptsApi.js", "gemini/ohoneyApi.js", "gemini/planMapping.js", "gemini/analytics.js", "gemini/ui/state.js", "gemini/ui/icons.js", "gemini/ui/styles.js", "gemini/ui/ohoneyStyles.js", "gemini/ui/components.js", "gemini/ui/ohoneyJobs.js", "gemini/ui/ohoneyModal.js", "gemini/ui/menu.js", "gemini/content.js" ],
+      "matches": [ "\u003Call_urls>" ],
+      "run_at": "document_idle"
+   }, {
+      "js": [ "gemini/gemini.js" ],
+      "matches": [ "https://gemini.google.com/*" ],
+      "run_at": "document_idle"
+   }, {
+      "js": [ "gemini/chatgpt.js" ],
+      "matches": [ "https://chatgpt.com/*", "https://chat.openai.com/*" ],
+      "run_at": "document_idle"
+   }, {
+      "js": [ "gemini/claude.js" ],
+      "matches": [ "https://claude.ai/*" ],
+      "run_at": "document_idle"
+   } ],
+   "content_security_policy": {
+      "extension_pages": "script-src 'self'; object-src 'self'; connect-src https: data: blob:;"
+   },
+   "description": "Boost your Etsy sales by revealing best selling products. Improve your Etsy store SEO with high-demand, low-competition keywords.",
+   "externally_connectable": {
+      "matches": [ "https://stag-auth.everbee.io/*", "https://auth.everbee.io/*" ]
+   },
+   "homepage_url": "https://everbee.io",
+   "host_permissions": [ "\u003Call_urls>" ],
+   "icons": {
+      "128": "images/logo2.png",
+      "16": "images/logo2.png",
+      "48": "images/logo2.png"
+   },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkevZVMOHXXagjwtC6OrLVQ+nKSZjBi8/hhfl+tbAAtpGKfkn54i+JUPuBlh//UACWyA9LBhHmetKxlp+xFLFmH+AWrd7eicleQKmOzvVML4+UTx9fcgTp76DH2go4ed7Lj4S2BwS98+ZLNohZM4J5/o+lBYPhVjeCHnvnNDNTO9smjreeMnp7fPwUNN+v4AzBEtd5IeGvyNmKND3WOCKW5K3H++egs2COmw2jie2TGXMzyiCMkPJOBLLPag5hGhnFDa6cj9nFPM0RLqVNvlhu/KK7scDw69uzmkUkXraUiSivw34jjSVghLK+ntK3zC4tGwgrhBkxAWPEgbqT+v7HwIDAQAB",
+   "manifest_version": 3,
+   "name": "EverBee - Find Best Selling Products on Etsy",
+   "permissions": [ "storage", "tabs", "activeTab" ],
+   "privacy_policy": "https://everbee.io/policy/",
+   "short_name": "EverBee",
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "9.1.19",
+   "web_accessible_resources": [ {
+      "matches": [ "\u003Call_urls>" ],
+      "resources": [ "images/*", "svg/*", "everbeeInstalled.js" ]
+   }, {
+      "matches": [ "\u003Call_urls>" ],
+      "resources": [ "gemini/*", "gemini/ui/*" ]
+   } ]
+}

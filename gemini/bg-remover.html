@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>BeeVision - Image Processor</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background: #f9fbfd;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #fff;
+      border: 1px solid #e4ebf5;
+      border-radius: 20px;
+      box-shadow: 0 8px 40px rgba(4, 56, 114, 0.1);
+      width: 100%;
+      max-width: 560px;
+      overflow: hidden;
+    }
+    .header {
+      background: #043872;
+      padding: 16px 22px;
+      color: #fff;
+      font-weight: 700;
+    }
+    .body { padding: 20px; }
+    .preview {
+      border-radius: 12px;
+      border: 1px solid #e4ebf5;
+      background: #f5f8fc;
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    .preview img {
+      max-width: 100%;
+      max-height: 320px;
+      display: none;
+    }
+    .status {
+      font-size: 13px;
+      color: #506690;
+      margin-bottom: 12px;
+    }
+    .actions { display: flex; gap: 8px; }
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    #processBtn { background: #043872; color: #fff; flex: 1; }
+    #downloadBtn { background: #1F76CC; color: #fff; display: none; flex: 1; }
+    #closeBtn {
+      background: #fff;
+      color: #7284a1;
+      border: 1px solid #e4ebf5;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">BeeVision - Image Processor</div>
+    <div class="body">
+      <div class="preview"><img id="previewImg" alt="Preview" /></div>
+      <div class="status" id="statusText">Loading image...</div>
+      <div class="actions">
+        <button id="processBtn">Remove Background (Browser)</button>
+        <button id="downloadBtn">Download PNG</button>
+        <button id="closeBtn" onclick="window.close()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const token = params.get('token') || '';
+    const imgSrc = params.get('imgSrc') || '';
+    const filename = (params.get('filename') || 'beevision') + '-nobg.png';
+    const previewImg = document.getElementById('previewImg');
+    const statusText = document.getElementById('statusText');
+    const processBtn = document.getElementById('processBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const closeBtn = document.getElementById('closeBtn');
+
+    let sourceBlob = null;
+    let outputUrl = null;
+
+    async function init() {
+      try {
+        if (token) {
+          const tokenRes = await chrome.runtime.sendMessage({ type: 'GET_PENDING_IMAGE', token });
+          if (tokenRes?.ok && tokenRes.dataUrl) {
+            sourceBlob = await (await fetch(tokenRes.dataUrl)).blob();
+            chrome.runtime.sendMessage({ type: 'CLEAR_PENDING_IMAGE', token });
+          }
+        }
+        if (!sourceBlob && imgSrc) {
+          const srcRes = await chrome.runtime.sendMessage({ type: 'FETCH_IMAGE_URL', url: imgSrc });
+          if (srcRes?.ok && srcRes.dataUrl) {
+            sourceBlob = await (await fetch(srcRes.dataUrl)).blob();
+          }
+        }
+        if (!sourceBlob) {
+          statusText.textContent = 'Could not load image.';
+          closeBtn.style.display = 'inline-block';
+          return;
+        }
+        const srcUrl = URL.createObjectURL(sourceBlob);
+        previewImg.src = srcUrl;
+        previewImg.style.display = 'block';
+        statusText.textContent = 'Image ready. Click process.';
+      } catch (error) {
+        statusText.textContent = 'Failed to load image: ' + error.message;
+        closeBtn.style.display = 'inline-block';
+      }
+    }
+
+    processBtn.onclick = async () => {
+      if (!sourceBlob) return;
+      processBtn.disabled = true;
+      statusText.textContent = 'Processing...';
+      try {
+        const img = await loadImage(URL.createObjectURL(sourceBlob));
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        removeFlatBackground(data, canvas.width, canvas.height);
+        ctx.putImageData(data, 0, 0);
+
+        outputUrl = URL.createObjectURL(await new Promise((resolve) => canvas.toBlob(resolve, 'image/png')));
+        previewImg.src = outputUrl;
+        statusText.textContent = 'Done. Download your PNG.';
+        downloadBtn.style.display = 'inline-block';
+        closeBtn.style.display = 'inline-block';
+      } catch (error) {
+        statusText.textContent = 'Processing failed: ' + error.message;
+        closeBtn.style.display = 'inline-block';
+      } finally {
+        processBtn.disabled = false;
+      }
+    };
+
+    downloadBtn.onclick = () => {
+      if (!outputUrl) return;
+      const a = document.createElement('a');
+      a.href = outputUrl;
+      a.download = filename;
+      a.click();
+    };
+
+    function loadImage(url) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = url;
+      });
+    }
+
+    function removeFlatBackground(imageData, width, height) {
+      const data = imageData.data;
+      const sample = getPixel(data, width, 0, 0);
+      const threshold = 42;
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const idx = (y * width + x) * 4;
+          const [r, g, b] = getPixel(data, width, x, y);
+          const dist = Math.sqrt(
+            Math.pow(r - sample[0], 2) +
+              Math.pow(g - sample[1], 2) +
+              Math.pow(b - sample[2], 2),
+          );
+          if (dist <= threshold) {
+            data[idx + 3] = 0;
+          }
+        }
+      }
+    }
+
+    function getPixel(data, width, x, y) {
+      const i = (y * width + x) * 4;
+      return [data[i], data[i + 1], data[i + 2]];
+    }
+
+    init();
+  </script>
+</body>
+</html>
